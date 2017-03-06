@@ -3,6 +3,7 @@
 
 import React, { Component } from 'react';
 import {
+  Alert,
   ActivityIndicator,
   Dimensions,
   InteractionManager,
@@ -20,6 +21,7 @@ import NoChartsWarningMessage from '../components/NoChartsWarningMessage';
 import realm from '../model/realm';
 import SettingsContainer from './SettingsContainer';
 import { Scenes, SettingsScenes } from '../constants';
+import ServicesClient from '../api/ServicesClient';
 import SideMenu from './SideMenu';
 import { sortModelsByRegionId } from '../utility';
 
@@ -51,6 +53,23 @@ class AppContainer extends Component {
 
   componentDidMount() {
     this._timeOfLastActivity = Date.now();
+
+    // check versions of charts for out of date ones
+    ServicesClient.getUpdatedModels(this._savedVfrCharts).then((result) => {
+      Alert.alert(
+        'You have outdated charts!', '',
+        [
+          {text: 'Take me to download', onPress: () => {
+            this.setState({
+              updatedModels: result.updatedModels || [],
+            });
+
+            this._goToDownloadsView();
+          }},
+          {text: 'Ignore'},
+        ]
+      );
+    });
   }
 
   componentWillUnmount() {
@@ -82,10 +101,12 @@ class AppContainer extends Component {
   }
 
   handleMenuPress = route => {
+    // clear the updatedModels if the user exits the settings menu
     this.setState({
       isWorking: true,
       route: route,
       initialSettingsRoute: null,
+      updatedModels: null,
     });
 
     if (this._sideMenu !== null) {
@@ -135,7 +156,12 @@ class AppContainer extends Component {
 
         return this._favoritedCharts.length === 0 ? noFavoritesButton : favoritedChartsList;
       case Scenes.SETTINGS:
-        return <SettingsContainer initialRoute={this.state.initialSettingsRoute} />;
+        return (
+          <SettingsContainer
+            initialRoute={this.state.initialSettingsRoute}
+            updatedModels={this.state.updatedModels}
+          />
+        );
       case Scenes.CHARTVIEW:
         this._intervalId = setInterval(() => {
           if (this._shouldHideHeader() && Math.abs(Date.now() - this._timeOfLastActivity) > 3500) {

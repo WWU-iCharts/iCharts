@@ -13,7 +13,6 @@ import { fetchAndProcessTiles } from '../utility/StorageUtility';
 import { Colors, FontStyles } from '../styles';
 import Icon from 'react-native-vector-icons/Ionicons';
 import realm from '../model/realm';
-import ServicesClient from '../api/ServicesClient';
 import { Circle } from 'react-native-progress';
 
 export default class DownloadChartCell extends Component {

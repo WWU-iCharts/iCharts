@@ -18,6 +18,7 @@ import { sortModelsByRegionId, removeTiles } from '../utility';
 class SettingsContainer extends Component {
   static propTypes = {
     initialRoute: PropTypes.string,
+    updatedModels: PropTypes.array,
   };
 
   static defaultProps = {
@@ -46,6 +47,7 @@ class SettingsContainer extends Component {
 
   renderScene = (route, navigator) => {
     const { downloadModels, errorMessage } = this.state;
+    const { updatedModels } = this.props;
 
     switch (route.name) {
       case SettingsScenes.DOWNLOAD:
@@ -53,7 +55,7 @@ class SettingsContainer extends Component {
           <SettingsChartsViewWrapper
             navigator={navigator}
             chartCellClass={DownloadChartCell}
-            modelsToShow={downloadModels.sort(sortModelsByRegionId)}
+            modelsToShow={!updatedModels ? downloadModels.sort(sortModelsByRegionId) : updatedModels}
             errorMessage={errorMessage}
             showIsWorkingIndicator={true}
           />

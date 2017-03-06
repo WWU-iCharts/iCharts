@@ -6,6 +6,49 @@ const servicesEndpoint = 'http://104.236.153.135';
 
 export default class ServicesClient {
 
+  static async getUpdatedModels(currentModels) {
+    if (!currentModels)
+      return;
+
+    const errorObject = {
+      error: `Failed to retrieve outdated charts.`
+    };
+
+    try {
+      let updatedModelsResponse = await fetch(`${servicesEndpoint}/`, {
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        }),
+        method: 'POST',
+        mode: 'cors',
+        cache: 'default',
+        body: JSON.stringify(currentModels.map(({regionId, version}) => {
+          return {
+            regionId,
+            version
+          };
+        })),
+      });
+
+      let status = updatedModelsResponse.status;
+      if (status !== 200) {
+        console.warn(`Request for outdated models failed with code ${status}`);
+        return errorObject;
+      }
+
+      const modelsJson = await updatedModelsResponse.json();
+      const models = modelsJson.map(this.jsonToModelMapper);
+
+      // return the new models to replace the old
+      return {
+        updatedModels: models
+      };
+    } catch(error) {
+      console.warn(`Error getting outdated models: ${error}`);
+      return errorObject;
+    }
+  }
+
   // Fetch all models
   static async getAllModels() {
     const errorObject = {
